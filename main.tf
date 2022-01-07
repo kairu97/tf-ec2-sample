@@ -25,18 +25,38 @@ data "aws_ami" "amazon_linux" {
 }
 
 ### EC2 ### 
-resource "aws_key_pair" "mykey" {
-  key_name = "mykey"
-  public_key = file("mykey.pub")
+resource "aws_iam_role" "test_role" {
+  name = "ssm_test_role"
+
+  assume_role_policy = <<EOF
+{
+"Version": "2012-10-17",
+"Statement": {
+"Effect": "Allow",
+"Principal": {"Service": "ec2.amazonaws.com"},
+"Action": "sts:AssumeRole"
+}
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "test_attach" {
+  role       = aws_iam_role.test_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "test_profile" {
+  name = "test_profile"
+  role = aws_iam_role.test_role.name
 }
 
 resource "aws_instance" "ec2_instance" {
   user_data = file("install_site.sh")
   ami = data.aws_ami.amazon_linux.id
-  key_name = aws_key_pair.mykey.key_name
   associate_public_ip_address = true
   instance_type = "t2.micro"
   vpc_security_group_ids = [aws_security_group.allow_ports.id]
+  iam_instance_profile   = aws_iam_instance_profile.test_profile.name
 
   tags = {
     Name = "new-ec2-instance-tf"
