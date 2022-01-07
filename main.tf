@@ -66,7 +66,7 @@ resource "aws_instance" "ec2_instance" {
 ### Security Group ###
 resource "aws_security_group" "allow_ports" {
   name        = "allow_ports"
-  description = "Allow ports 80, 443, 22"
+  description = "Allow ports 80, 443"
 
   ingress {
     description      = "HTTP from VPC"
@@ -80,14 +80,6 @@ resource "aws_security_group" "allow_ports" {
     description      = "HTTPS from VPC"
     from_port        = 443
     to_port          = 443
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description      = "SSH from VPC"
-    from_port        = 22
-    to_port          = 22
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
